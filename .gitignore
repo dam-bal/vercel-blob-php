@@ -1,1 +1,3 @@
 .vercel
+/vendor
+.idea
