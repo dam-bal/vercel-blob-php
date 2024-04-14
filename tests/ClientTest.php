@@ -14,7 +14,6 @@ use VercelBlobPhp\Exception\BlobAccessException;
 use VercelBlobPhp\Exception\BlobException;
 use VercelBlobPhp\Exception\BlobNotFoundException;
 use VercelBlobPhp\Exception\BlobServiceNotAvailableException;
-use VercelBlobPhp\Exception\BlobServiceRateLimitedException;
 use VercelBlobPhp\Exception\BlobStoreNotFoundException;
 use VercelBlobPhp\Exception\BlobStoreSuspendedException;
 use VercelBlobPhp\Exception\BlobUnknownException;
