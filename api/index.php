@@ -1,6 +1,8 @@
 <?php
 
 use VercelBlobPhp\Client;
+use VercelBlobPhp\ListCommandMode;
+use VercelBlobPhp\ListCommandOptions;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -27,7 +29,11 @@ if (!empty($_GET['test-delete'])) {
 }
 
 if (!empty($_GET['test-list'])) {
-    $result = $client->list();
+    $result = $client->list(
+        new ListCommandOptions(
+            mode: $_GET['test-list'] === 'folded' ? ListCommandMode::FOLDED : ListCommandMode::EXPANDED
+        )
+    );
 
     echo "<pre>";
     echo var_export($result, true);

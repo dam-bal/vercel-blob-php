@@ -142,7 +142,7 @@ class Client
                 $blobs,
                 $parsedResponse['cursor'] ?? null,
                 $parsedResponse['hasMore'],
-                $parsedResponse['folders']
+                $parsedResponse['folders'] ?? []
             );
         }
 
