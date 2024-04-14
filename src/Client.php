@@ -89,7 +89,7 @@ class Client
             $parsedResponse['url'],
             $parsedResponse['downloadUrl'],
             $parsedResponse['size'],
-            $parsedResponse['uploadedAt'],
+            new \DateTime($parsedResponse['uploadedAt']),
             $parsedResponse['pathname'],
             $parsedResponse['contentType'],
             $parsedResponse['contentDisposition'],
