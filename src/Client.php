@@ -38,6 +38,11 @@ class Client
         );
     }
 
+    public function setClient(GuzzleClient $client): void
+    {
+        $this->client = $client;
+    }
+
     /**
      * @throws BlobAccessException
      * @throws BlobException
@@ -56,7 +61,7 @@ class Client
             $response = $this->client->request($method, $uri, $options);
         } catch (ClientException $exception) {
             $response = $exception->getResponse();
-            $body = json_decode($response->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            $body = json_decode($response->getBody()->getContents(), true, flags: JSON_THROW_ON_ERROR);
 
             $code = $body['error']['code'] ?? 'unknown_error';
             $message = $body['error']['message'] ?? null;

@@ -2,9 +2,19 @@
     "name": "dam-bal/vercel-blob-php",
     "description": "PHP Client for Vercel Blob",
     "type": "library",
+    "config": {
+        "platform": {
+            "php": "8.1"
+        }
+    },
     "autoload": {
         "psr-4": {
             "VercelBlobPhp\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\VercelBlobPhp\\": "tests/"
         }
     },
     "authors": [
@@ -15,5 +25,8 @@
     "require": {
         "php": "^8.1",
         "guzzlehttp/guzzle": "^7.8"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
     }
 }

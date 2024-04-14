@@ -1,0 +1,18 @@
+services:
+  php:
+    image: php:8.1-cli
+    working_dir: "/usr/src/myapp"
+    volumes:
+      - .:/usr/src/myapp
+
+  composer:
+    image: composer:latest
+    volumes:
+      - .:/app
+
+  phpunit:
+    image: php:8.1-cli
+    working_dir: "/usr/src/myapp"
+    volumes_from:
+      - php
+    entrypoint: "vendor/bin/phpunit"
