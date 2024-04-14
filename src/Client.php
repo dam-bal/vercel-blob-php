@@ -39,6 +39,44 @@ class Client
     }
 
     /**
+     * @throws BlobAccessException
+     * @throws BlobException
+     * @throws BlobNotFoundException
+     * @throws BlobServiceNotAvailableException
+     * @throws BlobServiceRateLimitedException
+     * @throws BlobStoreNotFoundException
+     * @throws BlobStoreSuspendedException
+     * @throws BlobUnknownException
+     * @throws GuzzleException
+     * @throws JsonException
+     */
+    public function request(string $uri, string $method, array $options = []): ResponseInterface
+    {
+        try {
+            $response = $this->client->request($method, $uri, $options);
+        } catch (ClientException $exception) {
+            $response = $exception->getResponse();
+            $body = json_decode($response->getBody(), true, flags: JSON_THROW_ON_ERROR);
+
+            $code = $body['error']['code'] ?? 'unknown_error';
+            $message = $body['error']['message'] ?? null;
+
+            throw match ($code) {
+                'store_suspended' => new BlobStoreSuspendedException(),
+                'forbidden' => new BlobAccessException(),
+                'not_found' => new BlobNotFoundException(),
+                'store_not_found' => new BlobStoreNotFoundException(),
+                'bad_request' => new BlobException($message ?? 'Bad request'),
+                'service_unavailable' => new BlobServiceNotAvailableException(),
+                'rate_limited' => new BlobServiceRateLimitedException((int)$response->getHeaderLine('retry-after')),
+                default => new BlobUnknownException(),
+            };
+        }
+
+        return $response;
+    }
+
+    /**
      * @return PutBlobResult
      * @throws BlobAccessException
      * @throws BlobException
@@ -281,44 +319,6 @@ class Client
         }
 
         return getenv("BLOB_READ_WRITE_TOKEN") ?: '';
-    }
-
-    /**
-     * @throws BlobAccessException
-     * @throws BlobException
-     * @throws BlobNotFoundException
-     * @throws BlobServiceNotAvailableException
-     * @throws BlobServiceRateLimitedException
-     * @throws BlobStoreNotFoundException
-     * @throws BlobStoreSuspendedException
-     * @throws BlobUnknownException
-     * @throws GuzzleException
-     * @throws JsonException
-     */
-    private function request(string $uri, string $method, array $options = []): ResponseInterface
-    {
-        try {
-            $response = $this->client->request($method, $uri, $options);
-        } catch (ClientException $exception) {
-            $response = $exception->getResponse();
-            $body = json_decode($response->getBody(), true, flags: JSON_THROW_ON_ERROR);
-
-            $code = $body['error']['code'] ?? 'unknown_error';
-            $message = $body['error']['message'] ?? null;
-
-            throw match ($code) {
-                'store_suspended' => new BlobStoreSuspendedException(),
-                'forbidden' => new BlobAccessException(),
-                'not_found' => new BlobNotFoundException(),
-                'store_not_found' => new BlobStoreNotFoundException(),
-                'bad_request' => new BlobException($message ?? 'Bad request'),
-                'service_unavailable' => new BlobServiceNotAvailableException(),
-                'rate_limited' => new BlobServiceRateLimitedException((int)$response->getHeaderLine('retry-after')),
-                default => new BlobUnknownException(),
-            };
-        }
-
-        return $response;
     }
 
     /**
