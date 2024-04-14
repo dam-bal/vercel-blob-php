@@ -11,7 +11,7 @@ class ListBlobResultBlob
         public readonly string $downloadUrl,
         public readonly string $pathname,
         public readonly int $number,
-        public readonly DateTime $uploadedAt
+        public readonly DateTime $uploadedAt,
     ) {
     }
 }

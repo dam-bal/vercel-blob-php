@@ -24,6 +24,14 @@ if (!empty($_GET['test-head'])) {
     echo "</pre>";
 }
 
+if (!empty($_GET['test-error'])) {
+    $result = $client->head('invalid-file-test.txt');
+
+    echo "<pre>";
+    echo var_export($result, true);
+    echo "</pre>";
+}
+
 if (!empty($_GET['test-delete'])) {
     $client->del([$_GET['test-delete']]);
 }

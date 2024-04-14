@@ -14,7 +14,7 @@ readonly class HeadBlobResult
         public string $pathname,
         public string $contentType,
         public string $contentDisposition,
-        public string $cacheControl
+        public string $cacheControl,
     ) {
     }
 }

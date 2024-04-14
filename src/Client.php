@@ -3,8 +3,20 @@
 namespace VercelBlobPhp;
 
 use DateTime;
+use Exception;
 use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
+use JsonException;
 use Psr\Http\Message\ResponseInterface;
+use VercelBlobPhp\Exception\BlobAccessException;
+use VercelBlobPhp\Exception\BlobException;
+use VercelBlobPhp\Exception\BlobNotFoundException;
+use VercelBlobPhp\Exception\BlobServiceNotAvailableException;
+use VercelBlobPhp\Exception\BlobServiceRateLimitedException;
+use VercelBlobPhp\Exception\BlobStoreNotFoundException;
+use VercelBlobPhp\Exception\BlobStoreSuspendedException;
+use VercelBlobPhp\Exception\BlobUnknownException;
 
 class Client
 {
@@ -26,11 +38,25 @@ class Client
         );
     }
 
+    /**
+     * @return PutBlobResult
+     * @throws BlobAccessException
+     * @throws BlobException
+     * @throws BlobNotFoundException
+     * @throws BlobServiceNotAvailableException
+     * @throws BlobServiceRateLimitedException
+     * @throws BlobStoreNotFoundException
+     * @throws BlobStoreSuspendedException
+     * @throws BlobUnknownException
+     * @throws GuzzleException
+     * @throws JsonException
+     */
     public function put(string $path, string $content, ?CommonCreateBlobOptions $options = null): PutBlobResult
     {
-        $parsedResponse = $this->parseResponse(
-            $this->client->put(
+        $body = $this->getResponseBody(
+            $this->request(
                 $this->getApiUrl('/' . $path),
+                'PUT',
                 [
                     'body' => $content,
                     'headers' => $this->getHeadersForCommonCreateBlobOptions($options),
@@ -39,34 +65,59 @@ class Client
         );
 
         return new PutBlobResult(
-            $parsedResponse['url'],
-            $parsedResponse['downloadUrl'],
-            $parsedResponse['pathname'],
-            $parsedResponse['contentType'] ?? null,
-            $parsedResponse['contentDisposition']
+            $body['url'],
+            $body['downloadUrl'],
+            $body['pathname'],
+            $body['contentType'] ?? null,
+            $body['contentDisposition']
         );
     }
 
     /**
      * @param string[] $urls
+     * @throws BlobAccessException
+     * @throws BlobException
+     * @throws BlobNotFoundException
+     * @throws BlobServiceNotAvailableException
+     * @throws BlobServiceRateLimitedException
+     * @throws BlobStoreNotFoundException
+     * @throws BlobStoreSuspendedException
+     * @throws BlobUnknownException
+     * @throws GuzzleException
+     * @throws JsonException
      */
     public function del(array $urls): void
     {
-        $this->client->post(
+        $this->request(
             $this->getApiUrl('/delete'),
+            'POST',
             [
                 'json' => [
-                    'urls' => $urls,
+                    'urls' => $urls
                 ]
             ]
         );
     }
 
+    /**
+     * @return CopyBlobResult
+     * @throws BlobAccessException
+     * @throws BlobException
+     * @throws BlobNotFoundException
+     * @throws BlobServiceNotAvailableException
+     * @throws BlobServiceRateLimitedException
+     * @throws BlobStoreNotFoundException
+     * @throws BlobStoreSuspendedException
+     * @throws BlobUnknownException
+     * @throws GuzzleException
+     * @throws JsonException
+     */
     public function copy(string $fromUrl, string $toPathname, ?CommonCreateBlobOptions $options = null): CopyBlobResult
     {
-        $parsedResponse = $this->parseResponse(
-            $this->client->put(
+        $body = $this->getResponseBody(
+            $this->request(
                 $this->getApiUrl(sprintf('/%s?fromUrl=%s', $toPathname, $fromUrl)),
+                'PUT',
                 [
                     'headers' => $this->getHeadersForCommonCreateBlobOptions($options),
                 ]
@@ -74,30 +125,60 @@ class Client
         );
 
         return new CopyBlobResult(
-            $parsedResponse['url'],
-            $parsedResponse['downloadUrl'],
-            $parsedResponse['pathname'],
-            $parsedResponse['contentType'] ?? null,
-            $parsedResponse['contentDisposition']
+            $body['url'],
+            $body['downloadUrl'],
+            $body['pathname'],
+            $body['contentType'] ?? null,
+            $body['contentDisposition']
         );
     }
 
+    /**
+     * @throws BlobAccessException
+     * @throws BlobException
+     * @throws BlobNotFoundException
+     * @throws BlobServiceNotAvailableException
+     * @throws BlobServiceRateLimitedException
+     * @throws BlobStoreNotFoundException
+     * @throws BlobStoreSuspendedException
+     * @throws BlobUnknownException
+     * @throws GuzzleException
+     * @throws JsonException
+     * @throws Exception
+     */
     public function head(string $url): HeadBlobResult
     {
-        $parsedResponse = $this->parseResponse($this->client->get($this->getApiUrl(sprintf('?url=%s', $url))));
+        $body = $this->getResponseBody(
+            $this->request(
+                $this->getApiUrl(sprintf('?url=%s', $url)),
+                'GET'
+            )
+        );
 
         return new HeadBlobResult(
-            $parsedResponse['url'],
-            $parsedResponse['downloadUrl'],
-            $parsedResponse['size'],
-            new DateTime($parsedResponse['uploadedAt']),
-            $parsedResponse['pathname'],
-            $parsedResponse['contentType'],
-            $parsedResponse['contentDisposition'],
-            $parsedResponse['cacheControl']
+            $body['url'],
+            $body['downloadUrl'],
+            $body['size'],
+            new DateTime($body['uploadedAt']),
+            $body['pathname'],
+            $body['contentType'],
+            $body['contentDisposition'],
+            $body['cacheControl']
         );
     }
 
+    /**
+     * @throws BlobAccessException
+     * @throws BlobException
+     * @throws BlobNotFoundException
+     * @throws BlobServiceNotAvailableException
+     * @throws BlobServiceRateLimitedException
+     * @throws BlobStoreNotFoundException
+     * @throws BlobStoreSuspendedException
+     * @throws BlobUnknownException
+     * @throws GuzzleException
+     * @throws JsonException
+     */
     public function list(?ListCommandOptions $options = null): ListBlobResult|ListFoldedBlobResult
     {
         $queryParams = [];
@@ -118,9 +199,10 @@ class Client
             $queryParams['prefix'] = $options->prefix;
         }
 
-        $parsedResponse = $this->parseResponse(
-            $this->client->get(
-                $this->getApiUrl('?' . http_build_query($queryParams, arg_separator: '&'))
+        $body = $this->getResponseBody(
+            $this->request(
+                $this->getApiUrl('?' . http_build_query($queryParams, arg_separator: '&')),
+                'GET'
             )
         );
 
@@ -134,22 +216,22 @@ class Client
                     new DateTime($blob['uploadedAt'])
                 );
             },
-            $parsedResponse['blobs'] ?? []
+            $body['blobs'] ?? []
         );
 
         if ($options?->mode === ListCommandMode::FOLDED) {
             return new ListFoldedBlobResult(
                 $blobs,
-                $parsedResponse['cursor'] ?? null,
-                $parsedResponse['hasMore'],
-                $parsedResponse['folders'] ?? []
+                $body['cursor'] ?? null,
+                $body['hasMore'],
+                $body['folders'] ?? []
             );
         }
 
         return new ListBlobResult(
             $blobs,
-            $parsedResponse['cursor'] ?? null,
-            $parsedResponse['hasMore'],
+            $body['cursor'] ?? null,
+            $body['hasMore'],
         );
     }
 
@@ -201,7 +283,58 @@ class Client
         return getenv("BLOB_READ_WRITE_TOKEN") ?: '';
     }
 
-    private function parseResponse(ResponseInterface $response): array
+    /**
+     * @throws BlobAccessException
+     * @throws BlobException
+     * @throws BlobNotFoundException
+     * @throws BlobServiceNotAvailableException
+     * @throws BlobServiceRateLimitedException
+     * @throws BlobStoreNotFoundException
+     * @throws BlobStoreSuspendedException
+     * @throws BlobUnknownException
+     * @throws GuzzleException
+     * @throws JsonException
+     */
+    private function request(string $uri, string $method, array $options = []): ResponseInterface
+    {
+        try {
+            $response = $this->client->request($method, $uri, $options);
+        } catch (ClientException $exception) {
+            $response = $exception->getResponse();
+            $body = json_decode($response->getBody(), true, flags: JSON_THROW_ON_ERROR);
+
+            $code = $body['error']['code'] ?? 'unknown_error';
+            $message = $body['error']['message'] ?? null;
+
+            switch ($code) {
+                case 'store_suspended':
+                    throw new BlobStoreSuspendedException();
+                case 'forbidden':
+                    throw new BlobAccessException();
+                case 'not_found':
+                    throw new BlobNotFoundException();
+                case 'store_not_found':
+                    throw new BlobStoreNotFoundException();
+                case 'bad_request':
+                    throw new BlobException($message ?? 'Bad request');
+                case 'service_unavailable':
+                    throw new BlobServiceNotAvailableException();
+                case 'rate_limited':
+                    throw new BlobServiceRateLimitedException((int)$response->getHeaderLine('retry-after'));
+                case 'unknown_error':
+                case 'not_allowed':
+                default:
+                    throw new BlobUnknownException();
+            }
+        }
+
+        return $response;
+    }
+
+    /**
+     * @throws JsonException
+     */
+    private function getResponseBody(ResponseInterface $response): array
     {
         return json_decode($response->getBody()->getContents(), true, flags: JSON_THROW_ON_ERROR);
     }
