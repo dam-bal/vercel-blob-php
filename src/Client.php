@@ -306,26 +306,16 @@ class Client
             $code = $body['error']['code'] ?? 'unknown_error';
             $message = $body['error']['message'] ?? null;
 
-            switch ($code) {
-                case 'store_suspended':
-                    throw new BlobStoreSuspendedException();
-                case 'forbidden':
-                    throw new BlobAccessException();
-                case 'not_found':
-                    throw new BlobNotFoundException();
-                case 'store_not_found':
-                    throw new BlobStoreNotFoundException();
-                case 'bad_request':
-                    throw new BlobException($message ?? 'Bad request');
-                case 'service_unavailable':
-                    throw new BlobServiceNotAvailableException();
-                case 'rate_limited':
-                    throw new BlobServiceRateLimitedException((int)$response->getHeaderLine('retry-after'));
-                case 'unknown_error':
-                case 'not_allowed':
-                default:
-                    throw new BlobUnknownException();
-            }
+            throw match ($code) {
+                'store_suspended' => new BlobStoreSuspendedException(),
+                'forbidden' => new BlobAccessException(),
+                'not_found' => new BlobNotFoundException(),
+                'store_not_found' => new BlobStoreNotFoundException(),
+                'bad_request' => new BlobException($message ?? 'Bad request'),
+                'service_unavailable' => new BlobServiceNotAvailableException(),
+                'rate_limited' => new BlobServiceRateLimitedException((int)$response->getHeaderLine('retry-after')),
+                default => new BlobUnknownException(),
+            };
         }
 
         return $response;
