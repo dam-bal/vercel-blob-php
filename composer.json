@@ -1,0 +1,18 @@
+{
+    "name": "dam-bal/vercel-blob-php",
+    "description": "Vercel Blob for PHP",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "VercelBlobPhp\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Damian Balandowski"
+        }
+    ],
+    "require": {
+        "php": "^8.2"
+    }
+}
