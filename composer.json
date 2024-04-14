@@ -1,6 +1,6 @@
 {
     "name": "dam-bal/vercel-blob-php",
-    "description": "Vercel Blob for PHP",
+    "description": "PHP Client for Vercel Blob",
     "type": "library",
     "autoload": {
         "psr-4": {
@@ -13,7 +13,7 @@
         }
     ],
     "require": {
-        "php": "^8.2",
+        "php": "^8.1",
         "guzzlehttp/guzzle": "^7.8"
     }
 }

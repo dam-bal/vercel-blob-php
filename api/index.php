@@ -9,7 +9,7 @@ require __DIR__ . '/../vendor/autoload.php';
 $client = new Client();
 
 if (!empty($_GET['test-put'])) {
-    $result = $client->put('this-is-test.txt', 'Testing');
+    $result = $client->put($_GET['test-put'], 'Testing');
 
     echo "<pre>";
     echo var_export($result, true);

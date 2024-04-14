@@ -4,17 +4,17 @@ namespace VercelBlobPhp;
 
 use DateTime;
 
-readonly class HeadBlobResult
+class HeadBlobResult
 {
     public function __construct(
-        public string $url,
-        public string $downloadUrl,
-        public int $size,
-        public DateTime $uploadedAt,
-        public string $pathname,
-        public string $contentType,
-        public string $contentDisposition,
-        public string $cacheControl,
+        public readonly string $url,
+        public readonly string $downloadUrl,
+        public readonly int $size,
+        public readonly DateTime $uploadedAt,
+        public readonly string $pathname,
+        public readonly string $contentType,
+        public readonly string $contentDisposition,
+        public readonly string $cacheControl,
     ) {
     }
 }

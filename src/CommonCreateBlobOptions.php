@@ -2,13 +2,13 @@
 
 namespace VercelBlobPhp;
 
-readonly class CommonCreateBlobOptions
+class CommonCreateBlobOptions
 {
     public function __construct(
-        public string $access = 'public',
-        public ?bool $addRandomSuffix = false,
-        public ?string $contentType = null,
-        public ?int $cacheControlMaxAge = null,
+        public readonly string $access = 'public',
+        public readonly ?bool $addRandomSuffix = false,
+        public readonly ?string $contentType = null,
+        public readonly ?int $cacheControlMaxAge = null,
     ) {
     }
 }

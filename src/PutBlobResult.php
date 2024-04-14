@@ -2,14 +2,14 @@
 
 namespace VercelBlobPhp;
 
-readonly class PutBlobResult
+class PutBlobResult
 {
     public function __construct(
-        public string $url,
-        public string $downloadUrl,
-        public string $pathname,
-        public ?string $contentType,
-        public string $contentDisposition,
+        public readonly string $url,
+        public readonly string $downloadUrl,
+        public readonly string $pathname,
+        public readonly ?string $contentType,
+        public readonly string $contentDisposition,
     ) {
     }
 }
