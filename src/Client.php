@@ -2,6 +2,7 @@
 
 namespace VercelBlobPhp;
 
+use DateTime;
 use GuzzleHttp\Client as GuzzleClient;
 use Psr\Http\Message\ResponseInterface;
 
@@ -89,11 +90,66 @@ class Client
             $parsedResponse['url'],
             $parsedResponse['downloadUrl'],
             $parsedResponse['size'],
-            new \DateTime($parsedResponse['uploadedAt']),
+            new DateTime($parsedResponse['uploadedAt']),
             $parsedResponse['pathname'],
             $parsedResponse['contentType'],
             $parsedResponse['contentDisposition'],
             $parsedResponse['cacheControl']
+        );
+    }
+
+    public function list(?ListCommandOptions $options = null): ListBlobResult|ListFoldedBlobResult
+    {
+        $queryParams = [];
+
+        if ($options?->cursor) {
+            $queryParams['cursor'] = $options->cursor;
+        }
+
+        if ($options?->limit) {
+            $queryParams['limit'] = $options->limit;
+        }
+
+        if ($options?->mode) {
+            $queryParams['mode'] = $options->mode;
+        }
+
+        if ($options?->prefix) {
+            $queryParams['prefix'] = $options->prefix;
+        }
+
+        $parsedResponse = $this->parseResponse(
+            $this->client->get(
+                $this->getApiUrl('?' . http_build_query($queryParams, arg_separator: '&'))
+            )
+        );
+
+        $blobs = array_map(
+            static function (array $blob): ListBlobResultBlob {
+                return new ListBlobResultBlob(
+                    $blob['url'],
+                    $blob['downloadUrl'],
+                    $blob['pathname'],
+                    $blob['size'],
+                    new DateTime($blob['uploadedAt'])
+                );
+            },
+            $parsedResponse['blobs'] ?? []
+        );
+
+        if ($options?->mode === ListCommandMode::FOLDED) {
+            return new ListFoldedBlobResult(
+                $blobs,
+                $parsedResponse['cursor'] ?? null,
+                $parsedResponse['hasMore'],
+                $parsedResponse['folders']
+            );
+        }
+
+        return new ListBlobResult(
+            $blobs,
+            $parsedResponse['cursor'] ?? null,
+            $parsedResponse['hasMore'],
         );
     }
 
@@ -131,9 +187,7 @@ class Client
 
     private function getApiUrl(string $pathname): string
     {
-        $baseUrl = getenv("VERCEL_BLOB_API_URL")
-            ? getenv("VERTCEL_BLOB_API_URL")
-            : self::BLOB_STORAGE_URL;
+        $baseUrl = getenv("VERCEL_BLOB_API_URL") ?: self::BLOB_STORAGE_URL;
 
         return $baseUrl . $pathname;
     }
@@ -144,7 +198,7 @@ class Client
             return $this->token;
         }
 
-        return getenv("BLOB_READ_WRITE_TOKEN") ? getenv("BLOB_READ_WRITE_TOKEN") : '';
+        return getenv("BLOB_READ_WRITE_TOKEN") ?: '';
     }
 
     private function parseResponse(ResponseInterface $response): array
