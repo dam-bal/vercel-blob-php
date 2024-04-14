@@ -61,7 +61,8 @@ class Client
             $response = $this->client->request($method, $uri, $options);
         } catch (ClientException $exception) {
             $response = $exception->getResponse();
-            $body = json_decode($response->getBody()->getContents(), true, flags: JSON_THROW_ON_ERROR);
+
+            $body = $this->getResponseBody($response);
 
             $code = $body['error']['code'] ?? 'unknown_error';
             $message = $body['error']['message'] ?? null;
