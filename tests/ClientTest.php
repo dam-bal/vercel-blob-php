@@ -14,6 +14,7 @@ use VercelBlobPhp\Exception\BlobAccessException;
 use VercelBlobPhp\Exception\BlobException;
 use VercelBlobPhp\Exception\BlobNotFoundException;
 use VercelBlobPhp\Exception\BlobServiceNotAvailableException;
+use VercelBlobPhp\Exception\BlobServiceRateLimitedException;
 use VercelBlobPhp\Exception\BlobStoreNotFoundException;
 use VercelBlobPhp\Exception\BlobStoreSuspendedException;
 use VercelBlobPhp\Exception\BlobUnknownException;
@@ -52,10 +53,10 @@ class ClientTest extends TestCase
             BlobServiceNotAvailableException::class,
         ];
 
-//        yield [
-//            'rate_limited',
-//            BlobServiceRateLimitedException::class,
-//        ];
+        yield [
+            'rate_limited',
+            BlobServiceRateLimitedException::class,
+        ];
 
         yield [
             'unknown',
@@ -75,6 +76,13 @@ class ClientTest extends TestCase
         $sut->setClient($clientMock);
 
         $response = $this->createMock(ResponseInterface::class);
+
+        if ($expectedException === BlobServiceRateLimitedException::class) {
+            $response
+                ->method('getHeaderLine')
+                ->with('retry-after')
+                ->willReturn('60');
+        }
 
         $responseBody = $this->createMock(StreamInterface::class);
 
@@ -97,5 +105,23 @@ class ClientTest extends TestCase
         $sut->request('/test', 'GET', []);
     }
 
-    // testRequest
+    public function testRequest(): void
+    {
+        $sut = new Client('my-token');
+
+        $clientMock = $this->createMock(\GuzzleHttp\Client::class);
+
+        $sut->setClient($clientMock);
+
+        $responseMock = $this->createMock(ResponseInterface::class);
+
+        $clientMock
+            ->method('request')
+            ->with('GET', '/test', ['json' => ['test']])
+            ->willReturn($responseMock);
+
+        $response = $sut->request('/test', 'GET', ['json' => ['test']]);
+
+        $this->assertEquals($responseMock, $response);
+    }
 }
