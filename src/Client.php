@@ -7,8 +7,10 @@ use Exception;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
+use Iterator;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 use VercelBlobPhp\Exception\BlobAccessException;
 use VercelBlobPhp\Exception\BlobException;
 use VercelBlobPhp\Exception\BlobNotFoundException;
@@ -83,6 +85,8 @@ class Client
     }
 
     /**
+     * @param resource|string|null|int|float|StreamInterface|callable|Iterator $content
+     *
      * @return PutBlobResult
      * @throws BlobAccessException
      * @throws BlobException
@@ -95,7 +99,7 @@ class Client
      * @throws GuzzleException
      * @throws JsonException
      */
-    public function put(string $path, string $content, ?CommonCreateBlobOptions $options = null): PutBlobResult
+    public function put(string $path, $content, ?CommonCreateBlobOptions $options = null): PutBlobResult
     {
         $body = $this->getResponseBody(
             $this->request(
@@ -119,6 +123,7 @@ class Client
 
     /**
      * @param string[] $urls
+     *
      * @throws BlobAccessException
      * @throws BlobException
      * @throws BlobNotFoundException
