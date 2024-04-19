@@ -22,6 +22,11 @@ use VercelBlobPhp\Exception\BlobStoreNotFoundException;
 use VercelBlobPhp\Exception\BlobStoreSuspendedException;
 use VercelBlobPhp\Exception\BlobUnknownException;
 use VercelBlobPhp\HeadBlobResult;
+use VercelBlobPhp\ListBlobResult;
+use VercelBlobPhp\ListBlobResultBlob;
+use VercelBlobPhp\ListCommandMode;
+use VercelBlobPhp\ListCommandOptions;
+use VercelBlobPhp\ListFoldedBlobResult;
 use VercelBlobPhp\PutBlobResult;
 
 class ClientTest extends TestCase
@@ -319,6 +324,196 @@ class ClientTest extends TestCase
                 'cacheControl'
             ),
             $sut->head('test-url')
+        );
+    }
+
+    public static function listDataProvider(): Generator
+    {
+        yield [
+            null,
+            [
+                'blobs' => [
+                    [
+                        'url' => 'url',
+                        'downloadUrl' => 'downloadUrl',
+                        'pathname' => 'pathname',
+                        'size' => 1,
+                        'uploadedAt' => '2024-01-01 10:00:00',
+                    ],
+                ],
+                'cursor' => 'cursor',
+                'hasMore' => true,
+            ],
+            'blob?',
+            new ListBlobResult(
+                [
+                    new ListBlobResultBlob(
+                        'url',
+                        'downloadUrl',
+                        'pathname',
+                        1,
+                        new DateTime('2024-01-01 10:00:00')
+                    )
+                ],
+                'cursor',
+                true
+            )
+        ];
+
+        yield [
+            new ListCommandOptions(mode: ListCommandMode::FOLDED),
+            [
+                'blobs' => [
+                    [
+                        'url' => 'url',
+                        'downloadUrl' => 'downloadUrl',
+                        'pathname' => 'pathname',
+                        'size' => 1,
+                        'uploadedAt' => '2024-01-01 10:00:00',
+                    ],
+                ],
+                'cursor' => 'cursor',
+                'hasMore' => true,
+                'folders' => [
+                    'folder1',
+                    'folder2'
+                ]
+            ],
+            'blob?mode=folded',
+            new ListFoldedBlobResult(
+                [
+                    new ListBlobResultBlob(
+                        'url',
+                        'downloadUrl',
+                        'pathname',
+                        1,
+                        new DateTime('2024-01-01 10:00:00')
+                    )
+                ],
+                'cursor',
+                true,
+                [
+                    'folder1',
+                    'folder2'
+                ]
+            )
+        ];
+
+        yield [
+            new ListCommandOptions(cursor: 'cursor'),
+            [
+                'blobs' => [
+                    [
+                        'url' => 'url',
+                        'downloadUrl' => 'downloadUrl',
+                        'pathname' => 'pathname',
+                        'size' => 1,
+                        'uploadedAt' => '2024-01-01 10:00:00',
+                    ],
+                ],
+                'cursor' => 'cursor',
+                'hasMore' => true,
+            ],
+            'blob?cursor=cursor',
+            new ListBlobResult(
+                [
+                    new ListBlobResultBlob(
+                        'url',
+                        'downloadUrl',
+                        'pathname',
+                        1,
+                        new DateTime('2024-01-01 10:00:00')
+                    )
+                ],
+                'cursor',
+                true
+            )
+        ];
+
+        yield [
+            new ListCommandOptions(limit: 100),
+            [
+                'blobs' => [
+                    [
+                        'url' => 'url',
+                        'downloadUrl' => 'downloadUrl',
+                        'pathname' => 'pathname',
+                        'size' => 1,
+                        'uploadedAt' => '2024-01-01 10:00:00',
+                    ],
+                ],
+                'cursor' => 'cursor',
+                'hasMore' => true,
+            ],
+            'blob?limit=100',
+            new ListBlobResult(
+                [
+                    new ListBlobResultBlob(
+                        'url',
+                        'downloadUrl',
+                        'pathname',
+                        1,
+                        new DateTime('2024-01-01 10:00:00')
+                    )
+                ],
+                'cursor',
+                true
+            )
+        ];
+
+        yield [
+            new ListCommandOptions(prefix: 'test'),
+            [
+                'blobs' => [
+                    [
+                        'url' => 'url',
+                        'downloadUrl' => 'downloadUrl',
+                        'pathname' => 'pathname',
+                        'size' => 1,
+                        'uploadedAt' => '2024-01-01 10:00:00',
+                    ],
+                ],
+                'cursor' => 'cursor',
+                'hasMore' => true,
+            ],
+            'blob?prefix=test',
+            new ListBlobResult(
+                [
+                    new ListBlobResultBlob(
+                        'url',
+                        'downloadUrl',
+                        'pathname',
+                        1,
+                        new DateTime('2024-01-01 10:00:00')
+                    )
+                ],
+                'cursor',
+                true
+            )
+        ];
+    }
+
+    #[DataProvider('listDataProvider')]
+    public function testList(
+        ?ListCommandOptions $options,
+        array $response,
+        string $expectedUrl,
+        ListBlobResult|ListFoldedBlobResult $expectedResult
+    ): void {
+        $sut = new Client('my-token');
+
+        $sut->setClient(
+            $this->mockClient(
+                $expectedUrl,
+                'GET',
+                [],
+                $response
+            )
+        );
+
+        $this->assertEquals(
+            $expectedResult,
+            $sut->list($options)
         );
     }
 

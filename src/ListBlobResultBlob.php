@@ -10,7 +10,7 @@ class ListBlobResultBlob
         public readonly string $url,
         public readonly string $downloadUrl,
         public readonly string $pathname,
-        public readonly int $number,
+        public readonly int $size,
         public readonly DateTime $uploadedAt,
     ) {
     }

@@ -236,7 +236,7 @@ class Client
         }
 
         if ($options?->mode) {
-            $queryParams['mode'] = $options->mode;
+            $queryParams['mode'] = $options->mode->value;
         }
 
         if ($options?->prefix) {
