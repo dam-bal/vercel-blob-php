@@ -2,6 +2,7 @@
     "name": "dam-bal/vercel-blob-php",
     "description": "PHP Client for Vercel Blob",
     "type": "library",
+    "license": "MIT",
     "config": {
         "platform": {
             "php": "8.1"
