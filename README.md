@@ -4,6 +4,12 @@ PHP Client for Vercel Blob Storage.
 
 [Vercel Blob](https://vercel.com/docs/storage/vercel-blob)
 
+## Install
+
+```shell
+composer require dam-bal/vercel-blob-php
+```
+
 ## Usage
 
 ### Creating Client
