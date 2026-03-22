@@ -31,6 +31,7 @@ $result = $client->put(
         addRandomSuffix: true,      // optional
         contentType: 'text',        // optional
         cacheControlMaxAge: 123,    // optional
+        allowOverwrite: true, // Enable overwriting an existing blob with the same pathname
     )
 );
 ```

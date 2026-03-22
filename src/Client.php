@@ -304,6 +304,10 @@ class Client
             $headers['x-cache-control-max-age'] = $options->cacheControlMaxAge;
         }
 
+        if ($options->allowOverwrite) {
+            $headers['x-allow-overwrite'] = $options->allowOverwrite;
+        }
+
         return $headers;
     }
 

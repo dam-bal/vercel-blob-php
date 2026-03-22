@@ -9,6 +9,7 @@ class CommonCreateBlobOptions
         public readonly ?bool $addRandomSuffix = false,
         public readonly ?string $contentType = null,
         public readonly ?int $cacheControlMaxAge = null,
+        public readonly ?bool $allowOverwrite = false,
     ) {
     }
 }
