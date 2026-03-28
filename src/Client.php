@@ -296,6 +296,11 @@ class Client
             $headers['x-random-suffix'] = $options->addRandomSuffix;
         }
 
+        if ($options->access) {
+            // Include access header for private/public store designation
+            $headers['x-vercel-blob-access'] = $options->access;
+        }
+
         if ($options->contentType) {
             $headers['x-content-type'] = $options->contentType;
         }
